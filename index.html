@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiểm soát Spare Part</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root{
+  --bg:#EBEDEE;
+  --panel:#FFFFFF;
+  --border:#D5D9DB;
+  --border-strong:#B7BDC1;
+  --ink:#161A1D;
+  --muted:#5C6469;
+  --faint:#8A9096;
+  --amber:#F2B705;
+  --amber-deep:#B9860A;
+  --steel:#2C5F7C;
+  --steel-deep:#1E4459;
+  --green:#2E7D4F; --green-bg:#E4F2E9; --green-brd:#B9DCC4;
+  --status-amber:#C77A0E; --amber-bg:#FBF0DA; --amber-brd:#EFCB84;
+  --red:#B93E28; --red-bg:#FAE7E2; --red-brd:#EEB7A6;
+  --radius:12px;
+  --mono:'JetBrains Mono', monospace;
+  --display:'Oswald', sans-serif;
+  --body:'Inter', sans-serif;
+  --shadow: 0 1px 2px rgba(20,24,27,0.06), 0 1px 1px rgba(20,24,27,0.04);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+#app{max-width:1180px;margin:0 auto;padding:16px 16px 64px;}
+
+/* ---------- header ---------- */
+.hdr{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:18px 22px;background:var(--ink);border-radius:var(--radius);
+  margin-bottom:14px;color:#fff;position:relative;overflow:hidden;
+}
+.hdr::before{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(135deg, rgba(242,183,5,0.08) 0 10px, transparent 10px 20px);
+}
+.hdr-inner{position:relative;z-index:1;display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:space-between;width:100%;}
+.hdr h1{
+  font-family:var(--display);font-weight:600;font-size:20px;letter-spacing:0.3px;margin:0;
+  text-transform:uppercase;
+}
+.hdr .sub{font-size:12.5px;color:#C7CDD1;margin-top:3px;font-family:var(--mono);}
+.hdr-tag{
+  font-family:var(--mono);font-size:11px;background:var(--amber);color:#2A2200;
+  padding:4px 9px;border-radius:5px;font-weight:700;letter-spacing:0.5px;
+}
+
+/* ---------- tabs ---------- */
+.tabs{
+  display:flex;gap:4px;background:var(--panel);border:1px solid var(--border);
+  border-radius:var(--radius);padding:5px;margin-bottom:16px;overflow-x:auto;
+}
+.tab-btn{
+  flex:1;min-width:88px;border:none;background:transparent;padding:9px 10px;
+  border-radius:8px;font-family:var(--display);font-size:12.5px;font-weight:500;
+  letter-spacing:0.4px;text-transform:uppercase;color:var(--muted);cursor:pointer;
+  transition:background .15s,color .15s;white-space:nowrap;
+}
+.tab-btn:hover{background:var(--bg);}
+.tab-btn.active{background:var(--ink);color:#fff;}
+
+/* ---------- generic ---------- */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
+.panel + .panel{margin-top:14px;}
+h2.section-title{
+  font-family:var(--display);font-size:14px;text-transform:uppercase;letter-spacing:0.6px;
+  color:var(--ink);margin:0 0 12px;display:flex;align-items:center;gap:8px;font-weight:600;
+}
+h2.section-title .count{
+  font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--bg);
+  padding:2px 7px;border-radius:20px;font-weight:500;
+}
+.muted{color:var(--muted);}
+.hint{font-size:12px;color:var(--faint);margin-top:4px;}
+button{font-family:var(--body);cursor:pointer;}
+.btn{
+  border:1px solid var(--border-strong);background:#fff;color:var(--ink);
+  padding:9px 14px;border-radius:8px;font-size:13.5px;font-weight:600;
+  transition:background .15s,border-color .15s;
+}
+.btn:hover{background:var(--bg);}
+.btn-primary{background:var(--ink);border-color:var(--ink);color:#fff;}
+.btn-primary:hover{background:#000;}
+.btn-amber{background:var(--amber);border-color:var(--amber-deep);color:#2A2200;}
+.btn-amber:hover{background:#e0ac04;}
+.btn-danger{background:var(--red-bg);border-color:var(--red-brd);color:var(--red);}
+.btn-danger:hover{background:#f5d3ca;}
+.btn-sm{padding:5px 9px;font-size:12px;border-radius:6px;}
+.btn-block{width:100%;}
+input,select,textarea{
+  width:100%;border:1px solid var(--border-strong);border-radius:8px;padding:9px 10px;
+  font-family:var(--body);font-size:13.5px;color:var(--ink);background:#fff;
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--steel);outline-offset:0;border-color:var(--steel);}
+label.field-label{display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--muted);margin-bottom:5px;}
+.field{margin-bottom:13px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+@media(max-width:640px){.row2,.row3{grid-template-columns:1fr;}}
+
+.badge{
+  display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;
+  font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:0.2px;
+}
+.badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-brd);}
+.badge-amber{background:var(--amber-bg);color:var(--status-amber);border:1px solid var(--amber-brd);}
+.badge-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-brd);}
+.badge-steel{background:#E4EDF1;color:var(--steel-deep);border:1px solid #BBD3DE;}
+
+.empty{
+  text-align:center;padding:36px 20px;color:var(--muted);
+}
+.empty .big{font-family:var(--display);font-size:15px;color:var(--ink);margin-bottom:4px;text-transform:uppercase;}
+
+/* ---------- overview stat strip ---------- */
+.stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+@media(max-width:760px){.stat-strip{grid-template-columns:repeat(2,1fr);}}
+.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);position:relative;}
+.stat-card .num{font-family:var(--display);font-size:28px;font-weight:600;line-height:1;}
+.stat-card .lbl{font-size:11.5px;color:var(--muted);margin-top:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;}
+.stat-card.warn .num{color:var(--status-amber);}
+.stat-card.bad .num{color:var(--red);}
+
+.line-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media(max-width:900px){.line-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:520px){.line-grid{grid-template-columns:1fr;}}
+.line-card{border:1px solid var(--border);border-radius:10px;padding:13px 14px;background:#FBFCFC;}
+.line-card .lname{font-family:var(--display);font-size:13.5px;text-transform:uppercase;font-weight:600;letter-spacing:0.3px;}
+.line-card .lwh{font-size:11.5px;color:var(--muted);font-family:var(--mono);margin-top:2px;}
+.line-card .lalert{margin-top:9px;font-size:12px;}
+.line-card ul{list-style:none;margin:6px 0 0;padding:0;}
+.line-card li{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-top:1px dashed var(--border);}
+.line-card li:first-child{border-top:none;}
+
+/* ---------- bin tag card (signature element) ---------- */
+.tag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;}
+.tag{
+  position:relative;background:var(--panel);border:1px solid var(--border);border-radius:10px;
+  padding:14px 14px 12px 18px;box-shadow:var(--shadow);overflow:hidden;
+}
+.tag::before{ /* status stripe */
+  content:"";position:absolute;left:0;top:0;bottom:0;width:6px;
+}
+.tag.st-green::before{background:var(--green);}
+.tag.st-amber::before{background:var(--status-amber);}
+.tag.st-red::before{background:var(--red);}
+.tag .punch{
+  position:absolute;top:10px;right:10px;width:14px;height:14px;border-radius:50%;
+  background:var(--bg);border:1px solid var(--border-strong);
+}
+.tag .code{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--steel-deep);letter-spacing:0.3px;}
+.tag .name{font-family:var(--display);font-size:14.5px;font-weight:500;margin:3px 0 8px;padding-right:18px;}
+.tag .tear{border-top:1px dashed var(--border-strong);margin:8px 0;}
+.tag .qty-row{display:flex;align-items:baseline;justify-content:space-between;}
+.tag .qty{font-family:var(--display);font-size:22px;font-weight:600;}
+.tag .qty-unit{font-size:11px;color:var(--muted);}
+.tag .wh-list{margin-top:8px;font-size:11.5px;color:var(--muted);}
+.tag .wh-list div{display:flex;justify-content:space-between;padding:2px 0;}
+.tag .wh-list b{color:var(--ink);font-family:var(--mono);}
+.tag .tag-actions{display:flex;gap:6px;margin-top:10px;}
+.tag .grp{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:0.4px;margin-top:2px;}
+
+/* ---------- update / scan ---------- */
+.scan-box{
+  border:2px dashed var(--border-strong);border-radius:10px;padding:16px;background:#FBFCFC;
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+}
+.scan-box input{flex:1;min-width:200px;font-family:var(--mono);font-size:15px;letter-spacing:0.5px;}
+#cameraWrap{margin-top:10px;display:none;}
+#cameraWrap.on{display:block;}
+video{width:100%;max-width:340px;border-radius:8px;border:1px solid var(--border-strong);background:#000;}
+.match-hit{
+  margin-top:10px;padding:10px 12px;background:var(--green-bg);border:1px solid var(--green-brd);
+  border-radius:8px;font-size:13px;display:flex;justify-content:space-between;align-items:center;
+}
+.match-miss{
+  margin-top:10px;padding:10px 12px;background:var(--amber-bg);border:1px solid var(--amber-brd);
+  border-radius:8px;font-size:13px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;
+}
+.seg{display:flex;border:1px solid var(--border-strong);border-radius:8px;overflow:hidden;}
+.seg button{flex:1;border:none;background:#fff;padding:9px 10px;font-size:13px;font-weight:700;font-family:var(--display);text-transform:uppercase;letter-spacing:0.3px;}
+.seg button.on{background:var(--ink);color:#fff;}
+.qty-input-wrap{display:flex;align-items:center;gap:8px;}
+.qty-input-wrap button{width:36px;height:36px;border-radius:8px;border:1px solid var(--border-strong);background:#fff;font-size:17px;font-weight:700;}
+.qty-input-wrap input{text-align:center;font-family:var(--mono);font-size:16px;font-weight:700;}
+
+/* ---------- history table ---------- */
+.hist-row{
+  display:grid;grid-template-columns:110px 100px 70px 1fr 70px 120px;gap:10px;align-items:center;
+  padding:9px 6px;border-bottom:1px solid var(--border);font-size:12.5px;
+}
+.hist-row.head{font-weight:700;color:var(--muted);text-transform:uppercase;font-size:10.5px;letter-spacing:0.3px;border-bottom:2px solid var(--border-strong);}
+.hist-row .t-time{font-family:var(--mono);color:var(--muted);font-size:11.5px;}
+.hist-row .t-item{font-family:var(--mono);font-size:12px;}
+@media(max-width:760px){
+  .hist-row{grid-template-columns:1fr 1fr;grid-auto-rows:auto;row-gap:2px;}
+  .hist-row.head{display:none;}
+  .hist-row span::before{content:attr(data-lbl) ": ";font-weight:700;color:var(--faint);}
+}
+
+/* ---------- manage lists ---------- */
+.mlist{list-style:none;margin:0;padding:0;}
+.mlist li{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:8px 4px;border-bottom:1px solid var(--border);font-size:13.5px;
+}
+.mlist li:last-child{border-bottom:none;}
+.mlist input{max-width:220px;}
+.add-row{display:flex;gap:8px;margin-top:10px;}
+
+/* toast */
+#toast{
+  position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;padding:11px 20px;border-radius:8px;font-size:13.5px;
+  font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.25);opacity:0;pointer-events:none;
+  transition:all .25s ease;z-index:999;display:flex;align-items:center;gap:8px;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(20,24,27,0.55);display:none;align-items:center;justify-content:center;z-index:998;padding:16px;}
+.modal-bg.on{display:flex;}
+.modal{background:#fff;border-radius:12px;padding:22px;max-width:360px;width:100%;text-align:center;}
+.modal h3{font-family:var(--display);text-transform:uppercase;font-size:15px;margin:0 0 6px;}
+.modal img{margin:12px 0;border:1px solid var(--border);border-radius:8px;padding:8px;}
+.modal .code{font-family:var(--mono);font-weight:700;font-size:15px;}
+
+.loading{padding:80px 0;text-align:center;color:var(--muted);font-family:var(--mono);font-size:13px;}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.filter-bar select,.filter-bar input{width:auto;min-width:130px;flex:1;}
+
+/* last activity row on tag card */
+.last-act{
+  margin-top:9px;padding-top:8px;border-top:1px dashed var(--border-strong);
+  font-size:11.5px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:6px;
+}
+.last-act.clickable{cursor:pointer;}
+.last-act.clickable:hover .la-text{color:var(--steel-deep);text-decoration:underline;}
+.last-act .chev{color:var(--faint);font-size:12px;}
+.last-act .la-dot{width:6px;height:6px;border-radius:50%;flex:none;}
+.last-act .la-dot.xuat{background:var(--red);}
+.last-act .la-dot.nhap{background:var(--green);}
+.last-act .la-text{flex:1;}
+
+/* modal transaction detail */
+.modal.wide{max-width:420px;text-align:left;}
+.detail-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.detail-row:last-child{border-bottom:none;}
+.detail-row b{font-family:var(--mono);}
+.mini-hist{margin-top:14px;}
+.mini-hist .mh-item{padding:8px 0;border-top:1px dashed var(--border);font-size:12px;}
+.mini-hist .mh-item:first-child{border-top:none;}
+.mini-hist .mh-top{display:flex;justify-content:space-between;color:var(--muted);font-family:var(--mono);font-size:11px;}
+.mini-hist .mh-note{margin-top:2px;color:var(--ink);}
+
+/* update sub-tabs */
+.subtabs{display:flex;gap:6px;margin-bottom:14px;}
+.subtabs button{
+  border:1px solid var(--border-strong);background:#fff;padding:8px 14px;border-radius:8px;
+  font-family:var(--display);font-size:12.5px;text-transform:uppercase;letter-spacing:0.3px;font-weight:600;color:var(--muted);
+}
+.subtabs button.on{background:var(--steel-deep);border-color:var(--steel-deep);color:#fff;}
+
+/* import */
+.import-drop{
+  border:2px dashed var(--border-strong);border-radius:10px;padding:22px;text-align:center;background:#FBFCFC;
+}
+.import-drop input[type=file]{max-width:320px;margin:10px auto 0;}
+.import-summary{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0;}
+.import-summary .chip{font-family:var(--mono);font-size:12px;padding:5px 10px;border-radius:20px;font-weight:700;}
+.chip-ok{background:var(--green-bg);color:var(--green);border:1px solid var(--green-brd);}
+.chip-warn{background:var(--amber-bg);color:var(--status-amber);border:1px solid var(--amber-brd);}
+.chip-err{background:var(--red-bg);color:var(--red);border:1px solid var(--red-brd);}
+.import-table-wrap{max-height:420px;overflow:auto;border:1px solid var(--border);border-radius:8px;margin-top:10px;}
+table.import-table{width:100%;border-collapse:collapse;font-size:12px;}
+table.import-table th{position:sticky;top:0;background:var(--ink);color:#fff;text-align:left;padding:7px 8px;font-family:var(--display);text-transform:uppercase;font-size:10.5px;letter-spacing:0.3px;}
+table.import-table td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:top;}
+table.import-table tr.row-err{background:var(--red-bg);}
+table.import-table tr.row-warn{background:var(--amber-bg);}
+table.import-table .rstatus{font-weight:700;font-size:11px;}
+table.import-table .rstatus.ok{color:var(--green);}
+table.import-table .rstatus.warn{color:var(--status-amber);}
+table.import-table .rstatus.err{color:var(--red);}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">Đang tải dữ liệu kho…</div></div>
+<div id="toast"><span class="dot"></span><span id="toastMsg"></span></div>
+<div class="modal-bg" id="modalBg"><div class="modal wide" id="modalContent"></div></div>
+
+<!-- ============ FIREBASE SDK ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+/* ================= FIREBASE CONFIG =================
+   1. Vào https://console.firebase.google.com -> tạo dự án mới.
+   2. Trong dự án, vào "Build" > "Firestore Database" > "Create database"
+      (chọn chế độ Production hoặc Test tuỳ nhu cầu).
+   3. Vào Project settings (icon bánh răng) > tab "General" > mục
+      "Your apps" > bấm icon </> (Web) để tạo 1 Web App.
+   4. Firebase sẽ cho bạn 1 đoạn cấu hình dạng firebaseConfig = {...}
+      -> copy và dán đè vào object bên dưới.
+====================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyDa8nngf0HhSOtthRaPEUZ11SD6WjzyeJw",
+  authDomain: "spare-part-dashboard.firebaseapp.com",
+  projectId: "spare-part-dashboard",
+  storageBucket: "spare-part-dashboard.firebasestorage.app",
+  messagingSenderId: "670177227120",
+  appId: "1:670177227120:web:80acdcc5fd02cbe620dfb5"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+/* Tên collection lưu dữ liệu trên Firestore — có thể đổi tuỳ ý */
+const FB_COLLECTION = 'sparePartDashboard';
+</script>
+
+<script>
+/* ================= STATE ================= */
+const S = {
+  meta:null, items:[], tx:[], activeTab:'overview',
+  lastUsed:{whId:null, userId:null},
+  scanStream:null, scanRAF:null,
+  ready:false
+};
+
+function uid(p){return p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+
+function defaultMeta(){
+  return {
+    lines:[
+      {id:'l1',name:'Dây chuyền 1'},{id:'l2',name:'Dây chuyền 2'},
+      {id:'l3',name:'Dây chuyền 3'},{id:'l4',name:'Dây chuyền 4'}
+    ],
+    warehouses:[
+      {id:'wm1',name:'Kho chính 1',type:'main'},
+      {id:'wm2',name:'Kho chính 2',type:'main'},
+      {id:'wm3',name:'Kho chính 3',type:'main'},
+      {id:'ws1',name:'Kho phụ - Line 1',type:'sub',lineId:'l1'},
+      {id:'ws2',name:'Kho phụ - Line 2',type:'sub',lineId:'l2'},
+      {id:'ws3',name:'Kho phụ - Line 3',type:'sub',lineId:'l3'},
+      {id:'ws4',name:'Kho phụ - Line 4',type:'sub',lineId:'l4'}
+    ],
+    users:Array.from({length:12},(_,i)=>({id:'u'+(i+1),name:'Nhân viên '+String(i+1).padStart(2,'0')}))
+  };
+}
+
+
+/* ================= STORAGE (Firebase Firestore) ================= */
+async function safeGet(key){
+  try{
+    const snap = await db.collection(FB_COLLECTION).doc(key).get();
+    if(!snap.exists) return null;
+    const data = snap.data();
+    return (data && Object.prototype.hasOwnProperty.call(data,'value')) ? data.value : null;
+  }catch(e){ console.error('firestore get fail',key,e); return null; }
+}
+async function safeSet(key,val){
+  try{
+    await db.collection(FB_COLLECTION).doc(key).set({ value: val, updatedAt: Date.now() });
+    return true;
+  }catch(e){ console.error('firestore set fail',key,e); toast('Lỗi lưu dữ liệu — thử lại'); return false; }
+}
+
+async function loadAll(){
+  const [meta,items,tx] = await Promise.all([safeGet('sp_meta'),safeGet('sp_items'),safeGet('sp_tx')]);
+  S.meta = meta || defaultMeta();
+  S.items = items || [];
+  S.tx = tx || [];
+  if(!meta) await safeSet('sp_meta',S.meta);
+  if(!items) await safeSet('sp_items',S.items);
+  if(!tx) await safeSet('sp_tx',S.tx);
+  S.ready=true;
+}
+
+/* ================= HELPERS ================= */
+function whName(id){const w=S.meta.warehouses.find(x=>x.id===id);return w?w.name:id;}
+function lineName(id){const l=S.meta.lines.find(x=>x.id===id);return l?l.name:'—';}
+function userName(id,raw){const u=S.meta.users.find(x=>x.id===id);if(u)return u.name;return raw?raw+' (chưa khớp)':'—';}
+function lastTx(itemId){return S.tx.find(t=>t.itemId===itemId)||null;}
+function itemTxHistory(itemId,limit){return S.tx.filter(t=>t.itemId===itemId).slice(0,limit||5);}
+function timeAgo(ts){
+  const diff = Date.now()-ts;
+  const min=Math.floor(diff/60000);
+  if(min<1) return 'vừa xong';
+  if(min<60) return min+' phút trước';
+  const hr=Math.floor(min/60);
+  if(hr<24) return hr+' giờ trước';
+  const day=Math.floor(hr/24);
+  if(day<7) return day+' ngày trước';
+  return fmtTime(ts);
+}
+function totalQty(item){return Object.values(item.stocks||{}).reduce((a,b)=>a+(b||0),0);}
+function statusOf(item){
+  const t=totalQty(item);
+  if(t<=0) return 'red';
+  if(t<=item.min) return 'amber';
+  return 'green';
+}
+function statusLabel(s){return s==='red'?'Hết hàng':s==='amber'?'Sắp hết':'Đủ hàng';}
+function fmtTime(ts){
+  const d=new Date(ts);
+  return d.toLocaleDateString('vi-VN')+' '+d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+}
+function toast(msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTO);
+  window._toastTO=setTimeout(()=>t.classList.remove('show'),2600);
+}
+function subWhForLine(lineId){return S.meta.warehouses.find(w=>w.type==='sub'&&w.lineId===lineId);}
+
+/* ================= RENDER ROOT ================= */
+function render(){
+  const app=document.getElementById('app');
+  app.innerHTML = `
+    <div class="hdr"><div class="hdr-inner">
+      <div>
+        <h1>Kiểm soát Spare Part · 4 Dây chuyền TV</h1>
+        <div class="sub">3 kho chính · 4 kho phụ · ${S.meta.users.length} người dùng</div>
+      </div>
+      <div class="hdr-tag">DỮ LIỆU DÙNG CHUNG</div>
+    </div></div>
+    <div class="tabs" id="tabs"></div>
+    <div id="tabContent"></div>
+  `;
+  const tabs=[['overview','Tổng quan'],['inventory','Vật tư'],['update','Cập nhật'],['history','Lịch sử'],['manage','Quản lý']];
+  document.getElementById('tabs').innerHTML = tabs.map(([id,label])=>
+    `<button class="tab-btn ${S.activeTab===id?'active':''}" data-tab="${id}">${label}</button>`
+  ).join('');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>{
+    stopScan(); S.activeTab=b.dataset.tab; render();
+  }));
+  const c=document.getElementById('tabContent');
+  if(S.activeTab==='overview') renderOverview(c);
+  else if(S.activeTab==='inventory') renderInventory(c);
+  else if(S.activeTab==='update') renderUpdate(c);
+  else if(S.activeTab==='history') renderHistory(c);
+  else if(S.activeTab==='manage') renderManage(c);
+}
+
+/* ================= OVERVIEW ================= */
+function renderOverview(c){
+  const items=S.items;
+  if(!items.length){
+    c.innerHTML = `<div class="panel"><div class="empty">
+      <div class="big">Chưa có vật tư nào</div>
+      Thêm spare part bằng cách quét mã ở tab <b>Cập nhật</b>, hoặc nhập hàng loạt qua <b>Cập nhật → Nhập từ Excel</b>.
+    </div></div>`;
+    return;
+  }
+  const lowItems=items.filter(i=>statusOf(i)!=='green').sort((a,b)=>(totalQty(a)-a.min)-(totalQty(b)-b.min));
+  const today=new Date(); today.setHours(0,0,0,0);
+  const txToday=S.tx.filter(t=>t.ts>=today.getTime()).length;
+  const totalUnits=items.reduce((a,i)=>a+totalQty(i),0);
+
+  let html = `<div class="stat-strip">
+    <div class="stat-card"><div class="num">${items.length}</div><div class="lbl">Mã spare part</div></div>
+    <div class="stat-card"><div class="num">${totalUnits}</div><div class="lbl">Tổng tồn kho</div></div>
+    <div class="stat-card ${lowItems.length?'warn':''}"><div class="num">${lowItems.length}</div><div class="lbl">Cảnh báo tồn thấp</div></div>
+    <div class="stat-card"><div class="num">${txToday}</div><div class="lbl">Giao dịch hôm nay</div></div>
+  </div>`;
+
+  html += `<div class="panel"><h2 class="section-title">Theo dây chuyền sản xuất <span class="count">4</span></h2>
+    <div class="line-grid">`;
+  S.meta.lines.forEach(line=>{
+    const sw = subWhForLine(line.id);
+    const linked = items.filter(i=> sw && (i.stocks[sw.id]!==undefined));
+    const lowInLine = linked.filter(i=>statusOf(i)!=='green');
+    html += `<div class="line-card">
+      <div class="lname">${line.name}</div>
+      <div class="lwh">${sw?sw.name:'chưa gắn kho phụ'}</div>
+      <div class="lalert">${lowInLine.length? `<span class="badge badge-amber">${lowInLine.length} SKU cần chú ý</span>` : `<span class="badge badge-green">Ổn định</span>`}</div>
+      <ul>${lowInLine.slice(0,3).map(i=>`<li><span>${i.name}</span><b>${sw?(i.stocks[sw.id]||0):0}/${i.min}</b></li>`).join('')||'<li style="border:none;color:var(--faint);">—</li>'}</ul>
+    </div>`;
+  });
+  html += `</div></div>`;
+
+  html += `<div class="panel"><h2 class="section-title">Cảnh báo tồn thấp toàn hệ thống <span class="count">${lowItems.length}</span></h2>`;
+  if(!lowItems.length){
+    html += `<div class="empty"><div class="big">Không có cảnh báo</div>Tất cả spare part đang trên mức tồn tối thiểu.</div>`;
+  } else {
+    html += `<div class="tag-grid">` + lowItems.map(i=>tagCardHTML(i)).join('') + `</div>`;
+  }
+  html += `</div>`;
+  c.innerHTML = html;
+}
+
+/* ================= INVENTORY ================= */
+function tagCardHTML(item){
+  const st=statusOf(item), t=totalQty(item);
+  const badge = st==='green'?'badge-green':st==='amber'?'badge-amber':'badge-red';
+  const whRows = Object.entries(item.stocks||{}).filter(([,q])=>q>0 || true)
+    .map(([wid,q])=>`<div><span>${whName(wid)}</span><b>${q}</b></div>`).join('') || '<div><span>—</span><b>0</b></div>';
+  return `<div class="tag st-${st}">
+    <div class="punch"></div>
+    <div class="code">${item.code}</div>
+    <div class="name">${item.name}</div>
+    <div class="grp">${item.group||'Chưa phân nhóm'} · min ${item.min} ${item.unit}</div>
+    <div class="tear"></div>
+    <div class="qty-row"><span class="qty">${t}</span><span class="qty-unit">${item.unit}</span></div>
+    <span class="badge ${badge}" style="margin-top:6px;">${statusLabel(st)}</span>
+    <div class="wh-list">${whRows}</div>
+    ${lastActRowHTML(item)}
+    <div class="tag-actions">
+      <button class="btn btn-sm" data-action="qr" data-id="${item.id}">Xem tem QR</button>
+      <button class="btn btn-sm" data-action="quickupdate" data-id="${item.id}">Cập nhật</button>
+    </div>
+  </div>`;
+}
+function lastActRowHTML(item){
+  const t=lastTx(item.id);
+  if(!t){
+    return `<div class="last-act"><span class="la-text">Chưa có giao dịch</span></div>`;
+  }
+  const verb = t.type==='xuat'?'đã xuất kho':'đã nhập kho';
+  return `<div class="last-act clickable" data-action="lastact" data-id="${item.id}">
+    <span class="la-dot ${t.type}"></span>
+    <span class="la-text">${userName(t.userId,t.rawUser)} ${verb} · ${timeAgo(t.ts)}</span>
+    <span class="chev">›</span>
+  </div>`;
+}
+
+function renderInventory(c){
+  const groups=[...new Set(S.items.map(i=>i.group).filter(Boolean))];
+  c.innerHTML = `
+    <div class="panel">
+      <div class="filter-bar">
+        <input id="invSearch" placeholder="Tìm theo mã hoặc tên spare part…" />
+        <select id="invWh"><option value="">Tất cả kho</option>${S.meta.warehouses.map(w=>`<option value="${w.id}">${w.name}</option>`).join('')}</select>
+        <select id="invGrp"><option value="">Tất cả nhóm</option>${groups.map(g=>`<option value="${g}">${g}</option>`).join('')}</select>
+        <select id="invStatus"><option value="">Mọi trạng thái</option><option value="green">Đủ hàng</option><option value="amber">Sắp hết</option><option value="red">Hết hàng</option></select>
+      </div>
+      <div id="invGrid"></div>
+    </div>`;
+  const doFilter=()=>{
+    const q=document.getElementById('invSearch').value.trim().toLowerCase();
+    const wh=document.getElementById('invWh').value;
+    const grp=document.getElementById('invGrp').value;
+    const stF=document.getElementById('invStatus').value;
+    let list=S.items.filter(i=>{
+      if(q && !(i.code.toLowerCase().includes(q)||i.name.toLowerCase().includes(q))) return false;
+      if(wh && !(i.stocks && i.stocks[wh]!==undefined)) return false;
+      if(grp && i.group!==grp) return false;
+      if(stF && statusOf(i)!==stF) return false;
+      return true;
+    });
+    const grid=document.getElementById('invGrid');
+    grid.innerHTML = list.length ? `<div class="tag-grid" style="margin-top:14px;">${list.map(tagCardHTML).join('')}</div>`
+      : `<div class="empty" style="margin-top:14px;"><div class="big">Không tìm thấy</div>Thử từ khoá hoặc bộ lọc khác.</div>`;
+  };
+  ['invSearch','invWh','invGrp','invStatus'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',doFilter);
+    document.getElementById(id).addEventListener('change',doFilter);
+  });
+  doFilter();
+  c.addEventListener('click',tagActionHandler);
+}
+function tagActionHandler(e){
+  const btn=e.target.closest('[data-action]'); if(!btn) return;
+  const id=btn.dataset.id, item=S.items.find(i=>i.id===id); if(!item) return;
+  if(btn.dataset.action==='qr') showQrModal(item);
+  if(btn.dataset.action==='quickupdate'){ S.activeTab='update'; render(); setTimeout(()=>applyScanCode(item.code),50); }
+  if(btn.dataset.action==='lastact') showTxDetailModal(item);
+}
+
+function showTxDetailModal(item){
+  const hist = itemTxHistory(item.id,6);
+  const t = hist[0];
+  if(!t) return;
+  const typeText = t.type==='xuat'?'Xuất kho':'Nhập kho';
+  document.getElementById('modalContent').innerHTML = `
+    <h3>${typeText} gần nhất</h3>
+    <div class="muted" style="font-size:12.5px;margin-bottom:8px;">${item.code} — ${item.name}</div>
+    <div class="detail-row"><span>Ngày giờ</span><b>${fmtTime(t.ts)}</b></div>
+    <div class="detail-row"><span>Người thực hiện</span><b>${userName(t.userId,t.rawUser)}</b></div>
+    <div class="detail-row"><span>Số lượng</span><b>${t.qty} ${item.unit}</b></div>
+    <div class="detail-row"><span>Kho</span><b>${whName(t.whId)}</b></div>
+    ${t.lineId?`<div class="detail-row"><span>Dây chuyền nhận</span><b>${lineName(t.lineId)}</b></div>`:''}
+    <div class="detail-row"><span>Lý do / Ghi chú</span><b style="text-align:right;max-width:220px;">${t.note?escapeHtml(t.note):'Không có'}</b></div>
+    ${hist.length>1?`<div class="mini-hist"><h2 class="section-title" style="font-size:12px;">Giao dịch gần đây</h2>
+      ${hist.map(h=>`<div class="mh-item">
+        <div class="mh-top"><span>${fmtTime(h.ts)} · ${userName(h.userId,h.rawUser)}</span><span>${h.type==='xuat'?'Xuất':'Nhập'} ${h.qty} ${item.unit}</span></div>
+        <div class="mh-note">${h.note?escapeHtml(h.note):''}</div>
+      </div>`).join('')}
+    </div>`:''}
+    <button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="closeModal()">Đóng</button>
+  `;
+  document.getElementById('modalContent').classList.add('wide');
+  document.getElementById('modalBg').classList.add('on');
+}
+
+function showQrModal(item){
+  const bg=document.getElementById('modalBg');
+  const qrUrl='https://api.qrserver.com/v1/create-qr-code/?size=180x180&data='+encodeURIComponent(item.code);
+  document.getElementById('modalContent').innerHTML = `
+    <h3>Tem kho</h3>
+    <div class="muted" style="font-size:12.5px;">${item.name}</div>
+    <img src="${qrUrl}" width="180" height="180" alt="QR ${item.code}"/>
+    <div class="code">${item.code}</div>
+    <div class="hint">Dán/in tem này lên vị trí lưu kho. Nhấn Ctrl+P để in nếu cần.</div>
+    <button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="closeModal()">Đóng</button>
+  `;
+  document.getElementById('modalContent').classList.remove('wide');
+  bg.classList.add('on');
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('on');}
+document.getElementById('modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg')closeModal();});
+
+/* ================= UPDATE (quick nhập/xuất) ================= */
+let updState = {code:'', type:'xuat', whId:null, lineId:null, userId:null, qty:1, matched:null};
+let updSubTab = 'quick';
+
+function renderUpdate(c){
+  c.innerHTML = `
+    <div class="subtabs" id="updSubtabs">
+      <button data-v="quick" class="${updSubTab==='quick'?'on':''}">Cập nhật nhanh</button>
+      <button data-v="import" class="${updSubTab==='import'?'on':''}">Nhập từ Excel</button>
+    </div>
+    <div id="updSubContent"></div>
+  `;
+  document.getElementById('updSubtabs').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    stopScan(); updSubTab=b.dataset.v; renderUpdate(c);
+  });
+  const sc = document.getElementById('updSubContent');
+  if(updSubTab==='quick') renderUpdateQuick(sc); else renderImport(sc);
+}
+
+function renderUpdateQuick(c){
+  updState.whId = updState.whId || S.lastUsed.whId || S.meta.warehouses[0].id;
+  updState.userId = updState.userId || S.lastUsed.userId || S.meta.users[0].id;
+  updState.lineId = updState.lineId || S.meta.lines[0].id;
+
+  c.innerHTML = `
+  <div class="panel">
+    <h2 class="section-title">1 · Quét hoặc nhập mã spare part</h2>
+    <div class="scan-box">
+      <input id="scanInput" placeholder="Quét QR hoặc gõ mã, VD: SP-BM-001" value="${updState.code}" autocomplete="off"/>
+      <button class="btn" id="camBtn">📷 Bật camera quét</button>
+    </div>
+    <div id="cameraWrap"><video id="camVideo" playsinline muted></video><canvas id="camCanvas" style="display:none;"></canvas>
+      <div class="hint">Đưa mã QR trên tem kho vào khung hình.</div></div>
+    <div id="matchArea"></div>
+  </div>
+
+  <div class="panel">
+    <h2 class="section-title">2 · Loại giao dịch</h2>
+    <div class="seg" id="typeSeg">
+      <button data-v="xuat" class="${updState.type==='xuat'?'on':''}">Xuất kho</button>
+      <button data-v="nhap" class="${updState.type==='nhap'?'on':''}">Nhập kho</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 class="section-title">3 · Chi tiết</h2>
+    <div class="row2">
+      <div class="field">
+        <label class="field-label">Kho</label>
+        <select id="whSel">${S.meta.warehouses.map(w=>`<option value="${w.id}" ${w.id===updState.whId?'selected':''}>${w.name}</option>`).join('')}</select>
+      </div>
+      <div class="field" id="lineField" style="${updState.type==='xuat'?'':'display:none;'}">
+        <label class="field-label">Dây chuyền nhận</label>
+        <select id="lineSel">${S.meta.lines.map(l=>`<option value="${l.id}" ${l.id===updState.lineId?'selected':''}>${l.name}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label class="field-label">Người thực hiện</label>
+        <select id="userSel">${S.meta.users.map(u=>`<option value="${u.id}" ${u.id===updState.userId?'selected':''}>${u.name}</option>`).join('')}</select>
+      </div>
+      <div class="field">
+        <label class="field-label">Số lượng</label>
+        <div class="qty-input-wrap">
+          <button id="qtyMinus" type="button">−</button>
+          <input id="qtyInput" type="number" min="1" value="${updState.qty}"/>
+          <button id="qtyPlus" type="button">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="field"><label class="field-label">Ghi chú (không bắt buộc)</label><input id="noteInput" placeholder="VD: thay thế lỗi định kỳ"/></div>
+    <button class="btn btn-primary btn-block" id="confirmBtn" style="padding:12px;font-size:14.5px;">Xác nhận cập nhật</button>
+    <div class="hint" style="text-align:center;margin-top:8px;">Kho &amp; người thực hiện sẽ được ghi nhớ cho lần cập nhật tiếp theo.</div>
+  </div>`;
+
+  document.getElementById('scanInput').addEventListener('input',e=>applyScanCode(e.target.value));
+  document.getElementById('camBtn').addEventListener('click',toggleCamera);
+  document.getElementById('typeSeg').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    updState.type=b.dataset.v; renderUpdate(c);
+  });
+  document.getElementById('whSel').addEventListener('change',e=>updState.whId=e.target.value);
+  const lineSel=document.getElementById('lineSel'); if(lineSel) lineSel.addEventListener('change',e=>updState.lineId=e.target.value);
+  document.getElementById('userSel').addEventListener('change',e=>updState.userId=e.target.value);
+  document.getElementById('qtyInput').addEventListener('input',e=>updState.qty=Math.max(1,parseInt(e.target.value)||1));
+  document.getElementById('qtyMinus').addEventListener('click',()=>{updState.qty=Math.max(1,updState.qty-1);document.getElementById('qtyInput').value=updState.qty;});
+  document.getElementById('qtyPlus').addEventListener('click',()=>{updState.qty=updState.qty+1;document.getElementById('qtyInput').value=updState.qty;});
+  document.getElementById('confirmBtn').addEventListener('click',confirmUpdate);
+
+  applyScanCode(updState.code, true);
+}
+
+function applyScanCode(code, silent){
+  updState.code = code;
+  if(!silent) document.getElementById('scanInput').value = code;
+  const area=document.getElementById('matchArea'); if(!area) return;
+  if(!code){ area.innerHTML=''; updState.matched=null; return; }
+  const item = S.items.find(i=>i.code.toLowerCase()===code.trim().toLowerCase());
+  updState.matched = item||null;
+  if(item){
+    area.innerHTML = `<div class="match-hit"><span><b>${item.code}</b> — ${item.name} · tồn hiện tại: <b>${totalQty(item)} ${item.unit}</b></span><span class="badge badge-green">Đã khớp</span></div>`;
+  } else {
+    area.innerHTML = `<div class="match-miss"><span>Không tìm thấy mã "<b>${escapeHtml(code)}</b>" trong danh sách.</span><button class="btn btn-sm btn-amber" id="newItemBtn">+ Tạo vật tư mới</button></div>`;
+    const btn=document.getElementById('newItemBtn');
+    if(btn) btn.addEventListener('click',()=>openNewItemInline(code));
+  }
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+function openNewItemInline(code){
+  const area=document.getElementById('matchArea');
+  area.innerHTML = `<div class="panel" style="margin-top:10px;background:#FBFCFC;">
+    <div class="row2">
+      <div class="field"><label class="field-label">Mã</label><input id="niCode" value="${escapeHtml(code)}"/></div>
+      <div class="field"><label class="field-label">Tên vật tư</label><input id="niName" placeholder="Tên spare part"/></div>
+    </div>
+    <div class="row3">
+      <div class="field"><label class="field-label">Nhóm</label><input id="niGroup" placeholder="VD: Bo mạch"/></div>
+      <div class="field"><label class="field-label">Đơn vị</label><input id="niUnit" placeholder="cái / bộ / sợi"/></div>
+      <div class="field"><label class="field-label">Tồn tối thiểu</label><input id="niMin" type="number" value="5"/></div>
+    </div>
+    <button class="btn btn-primary btn-block" id="niSave">Lưu vật tư mới</button>
+  </div>`;
+  document.getElementById('niSave').addEventListener('click',async ()=>{
+    const nCode=document.getElementById('niCode').value.trim();
+    const nName=document.getElementById('niName').value.trim();
+    if(!nCode||!nName){toast('Cần nhập mã và tên'); return;}
+    if(S.items.some(i=>i.code.toLowerCase()===nCode.toLowerCase())){toast('Mã đã tồn tại'); return;}
+    const item={id:uid('it'),code:nCode,name:nName,group:document.getElementById('niGroup').value.trim()||'Khác',
+      unit:document.getElementById('niUnit').value.trim()||'cái',
+      min:parseInt(document.getElementById('niMin').value)||0, stocks:{}};
+    S.items.push(item); await safeSet('sp_items',S.items);
+    toast('Đã tạo vật tư mới: '+nCode);
+    applyScanCode(nCode);
+  });
+}
+
+async function confirmUpdate(){
+  if(!updState.matched){ toast('Chưa khớp được mã spare part'); return; }
+  const item=updState.matched, whId=updState.whId, qty=updState.qty;
+  if(!qty || qty<1){ toast('Số lượng không hợp lệ'); return; }
+  item.stocks = item.stocks || {};
+  const current = item.stocks[whId]||0;
+  if(updState.type==='xuat' && current<qty){
+    if(!confirm('Kho "'+whName(whId)+'" chỉ còn '+current+' '+item.unit+'. Vẫn tiếp tục xuất '+qty+'?')) return;
+  }
+  item.stocks[whId] = updState.type==='xuat' ? current-qty : current+qty;
+
+  const txEntry={id:uid('tx'),ts:Date.now(),userId:updState.userId,itemId:item.id,type:updState.type,
+    qty:qty, whId:whId, lineId: updState.type==='xuat'?updState.lineId:null,
+    note:(document.getElementById('noteInput')||{}).value||''};
+  S.tx.unshift(txEntry);
+  if(S.tx.length>1000) S.tx = S.tx.slice(0,1000);
+
+  await Promise.all([safeSet('sp_items',S.items), safeSet('sp_tx',S.tx)]);
+  S.lastUsed.whId=whId; S.lastUsed.userId=updState.userId;
+  toast((updState.type==='xuat'?'Đã xuất ':'Đã nhập ')+qty+' '+item.unit+' · '+item.code+' · bởi '+userName(updState.userId));
+
+  updState.code=''; updState.qty=1; updState.matched=null;
+  renderUpdate(document.getElementById('tabContent'));
+}
+
+/* ================= IMPORT FROM EXCEL ================= */
+let importState = {rows:[], fileName:''};
+
+function renderImport(c){
+  c.innerHTML = `
+  <div class="panel">
+    <h2 class="section-title">Nhập hàng loạt từ file Excel</h2>
+    <p class="muted" style="font-size:13px;margin-top:-4px;">Dùng khi hàng về nhiều — điền vào file mẫu rồi tải lên đây để cập nhật tồn kho và tạo vật tư mới cùng lúc.</p>
+    <button class="btn btn-amber" id="dlTemplate">⬇ Tải file mẫu (.xlsx)</button>
+    <div class="import-drop" style="margin-top:14px;">
+      <div style="font-family:var(--display);text-transform:uppercase;font-size:13px;letter-spacing:0.3px;">Chọn file đã điền để import</div>
+      <div class="hint">Chấp nhận .xlsx, .xls, .csv — theo đúng cột trong file mẫu</div>
+      <input type="file" id="importFile" accept=".xlsx,.xls,.csv"/>
+    </div>
+    <div id="importResult"></div>
+  </div>`;
+  document.getElementById('dlTemplate').addEventListener('click',downloadTemplate);
+  document.getElementById('importFile').addEventListener('change',handleImportFile);
+}
+
+function downloadTemplate(){
+  const aoa = [
+    ['Mã spare part','Tên vật tư','Nhóm','Đơn vị','Tồn tối thiểu','Kho nhập','Số lượng nhập','Người nhập','Ghi chú'],
+    ['SP-BM-050','Bo mạch cảm biến ánh sáng','Bo mạch','cái',10,'Kho chính 1',25,S.meta.users[0]?S.meta.users[0].name:'','Nhập hàng về đợt mới'],
+    ['SP-CK-060','Ốc vít M4x10','Cơ khí','gói',20,'Kho chính 2',100,'','']
+  ];
+  const guide = [
+    ['Hướng dẫn điền file'],
+    ['- Mã spare part: bắt buộc. Nếu mã đã có trong hệ thống, các cột khác chỉ cần điền khi muốn cập nhật lại.'],
+    ['- Tên vật tư: bắt buộc nếu là mã mới.'],
+    ['- Kho nhập: phải đúng tên kho đang có trong hệ thống (xem tab Quản lý).'],
+    ['- Số lượng nhập: để trống nếu chỉ muốn tạo/sửa thông tin vật tư mà chưa nhập kho.'],
+    ['- Người nhập: điền đúng tên đang có trong danh sách người dùng để hệ thống ghi nhận đúng người.'],
+    ['- Có thể xoá 2 dòng ví dụ trước khi điền dữ liệu thật.']
+  ];
+  const wb = XLSX.utils.book_new();
+  const ws1 = XLSX.utils.aoa_to_sheet(aoa);
+  ws1['!cols']=[{wch:16},{wch:26},{wch:14},{wch:10},{wch:12},{wch:16},{wch:14},{wch:14},{wch:24}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Nhap kho');
+  const ws2 = XLSX.utils.aoa_to_sheet(guide);
+  ws2['!cols']=[{wch:70}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Huong dan');
+  XLSX.writeFile(wb, 'mau-nhap-kho-spare-part.xlsx');
+}
+
+function mapImportRow(raw){
+  const out={code:'',name:'',group:'',unit:'',min:'',wh:'',qty:'',user:'',note:''};
+  Object.keys(raw).forEach(h=>{
+    const H=h.toLowerCase(); const v=raw[h];
+    if(H.includes('mã')) out.code=String(v).trim();
+    else if(H.includes('tên')) out.name=String(v).trim();
+    else if(H.includes('nhóm')) out.group=String(v).trim();
+    else if(H.includes('đơn vị')) out.unit=String(v).trim();
+    else if(H.includes('tối thiểu')) out.min=v;
+    else if(H.includes('kho')) out.wh=String(v).trim();
+    else if(H.includes('số lượng')) out.qty=v;
+    else if(H.includes('người')) out.user=String(v).trim();
+    else if(H.includes('ghi chú')) out.note=String(v).trim();
+  });
+  return out;
+}
+
+function validateImportRow(row){
+  const existing = S.items.find(i=>i.code.toLowerCase()===row.code.toLowerCase());
+  if(!row.code) return {status:'err', reason:'Thiếu mã spare part'};
+  if(!existing && !row.name) return {status:'err', reason:'Mã mới nhưng thiếu tên vật tư'};
+  const hasQty = row.qty!=='' && row.qty!==null && !isNaN(row.qty) && Number(row.qty)>0;
+  let wh=null;
+  if(hasQty || row.wh){
+    wh = S.meta.warehouses.find(w=>w.name.toLowerCase()===String(row.wh).toLowerCase());
+    if(!wh) return {status:'err', reason:'Không tìm thấy kho "'+row.wh+'"'};
+  }
+  if(hasQty && !wh) return {status:'err', reason:'Có số lượng nhưng thiếu kho hợp lệ'};
+  if(row.user){
+    const u=S.meta.users.find(u=>u.name.toLowerCase()===row.user.toLowerCase());
+    if(!u) return {status:'warn', reason:'Người "'+row.user+'" chưa có trong danh sách — vẫn ghi nhận theo tên'};
+  }
+  return {status:'ok', reason: existing? 'Cập nhật vật tư có sẵn' : 'Tạo vật tư mới'};
+}
+
+async function handleImportFile(e){
+  const file=e.target.files[0]; if(!file) return;
+  importState.fileName=file.name;
+  try{
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf,{type:'array'});
+    const sheetName = wb.SheetNames.find(n=>n.toLowerCase().includes('nhap')) || wb.SheetNames[0];
+    const sheet = wb.Sheets[sheetName];
+    const raw = XLSX.utils.sheet_to_json(sheet,{defval:''});
+    importState.rows = raw.map(r=>{
+      const mapped=mapImportRow(r);
+      const v=validateImportRow(mapped);
+      return {...mapped, _status:v.status, _reason:v.reason};
+    }).filter(r=>r.code || r.name);
+  }catch(err){
+    toast('Không đọc được file — kiểm tra định dạng .xlsx');
+    return;
+  }
+  renderImportPreview();
+}
+
+function renderImportPreview(){
+  const box=document.getElementById('importResult');
+  const rows=importState.rows;
+  if(!rows.length){ box.innerHTML = `<div class="empty"><div class="big">Không có dòng dữ liệu</div>Kiểm tra lại file, có thể thiếu cột "Mã spare part".</div>`; return; }
+  const ok=rows.filter(r=>r._status==='ok').length, warn=rows.filter(r=>r._status==='warn').length, err=rows.filter(r=>r._status==='err').length;
+  box.innerHTML = `
+    <div class="import-summary">
+      <span class="chip chip-ok">${ok+warn} dòng sẽ được nhập</span>
+      ${warn?`<span class="chip chip-warn">${warn} dòng có cảnh báo</span>`:''}
+      ${err?`<span class="chip chip-err">${err} dòng lỗi — sẽ bỏ qua</span>`:''}
+    </div>
+    <div class="import-table-wrap"><table class="import-table">
+      <thead><tr><th>Mã</th><th>Tên</th><th>Kho</th><th>SL</th><th>Người</th><th>Trạng thái</th></tr></thead>
+      <tbody>
+        ${rows.map(r=>`<tr class="${r._status==='err'?'row-err':r._status==='warn'?'row-warn':''}">
+          <td>${escapeHtml(r.code)}</td><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.wh)}</td>
+          <td>${escapeHtml(String(r.qty))}</td><td>${escapeHtml(r.user)}</td>
+          <td class="rstatus ${r._status}">${r._reason}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table></div>
+    <button class="btn btn-primary btn-block" id="confirmImportBtn" style="margin-top:12px;padding:12px;" ${ok+warn===0?'disabled':''}>
+      Xác nhận nhập ${ok+warn} dòng hợp lệ
+    </button>`;
+  const btn=document.getElementById('confirmImportBtn');
+  if(btn) btn.addEventListener('click',commitImport);
+}
+
+async function commitImport(){
+  const rows = importState.rows.filter(r=>r._status!=='err');
+  let newItems=0, updatedItems=0, stockMoves=0;
+  rows.forEach(row=>{
+    let item = S.items.find(i=>i.code.toLowerCase()===row.code.toLowerCase());
+    if(!item){
+      item = {id:uid('it'), code:row.code, name:row.name||row.code, group:row.group||'Khác',
+        unit:row.unit||'cái', min:(row.min!==''&&!isNaN(row.min))?parseInt(row.min):0, stocks:{}};
+      S.items.push(item); newItems++;
+    } else {
+      if(row.name) item.name=row.name;
+      if(row.group) item.group=row.group;
+      if(row.unit) item.unit=row.unit;
+      if(row.min!=='' && !isNaN(row.min)) item.min=parseInt(row.min);
+      updatedItems++;
+    }
+    const hasQty = row.qty!=='' && !isNaN(row.qty) && Number(row.qty)>0;
+    if(hasQty && row.wh){
+      const wh = S.meta.warehouses.find(w=>w.name.toLowerCase()===row.wh.toLowerCase());
+      if(wh){
+        const q=parseInt(row.qty);
+        item.stocks[wh.id]=(item.stocks[wh.id]||0)+q;
+        const matchedUser = row.user ? S.meta.users.find(u=>u.name.toLowerCase()===row.user.toLowerCase()) : null;
+        S.tx.unshift({id:uid('tx'), ts:Date.now(), userId: matchedUser?matchedUser.id:null,
+          rawUser: matchedUser?null:(row.user||null), itemId:item.id, type:'nhap', qty:q,
+          whId:wh.id, lineId:null, note:row.note||'', source:'import'});
+        stockMoves++;
+      }
+    }
+  });
+  if(S.tx.length>1000) S.tx = S.tx.slice(0,1000);
+  await Promise.all([safeSet('sp_items',S.items), safeSet('sp_tx',S.tx)]);
+  toast('Đã import: '+newItems+' vật tư mới, '+updatedItems+' cập nhật, '+stockMoves+' lượt nhập kho');
+  importState={rows:[],fileName:''};
+  renderImport(document.getElementById('updSubContent'));
+}
+
+/* --- camera QR scan --- */
+async function toggleCamera(){
+  const wrap=document.getElementById('cameraWrap');
+  if(S.scanStream){ stopScan(); return; }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    S.scanStream=stream;
+    const video=document.getElementById('camVideo');
+    video.srcObject=stream; await video.play();
+    wrap.classList.add('on');
+    document.getElementById('camBtn').textContent='⏹ Tắt camera';
+    scanLoop();
+  }catch(err){
+    toast('Không truy cập được camera — nhập mã thủ công.');
+  }
+}
+function scanLoop(){
+  const video=document.getElementById('camVideo'), canvas=document.getElementById('camCanvas');
+  if(!video||!canvas){return;}
+  if(video.readyState===video.HAVE_ENOUGH_DATA && window.jsQR){
+    canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+    const ctx=canvas.getContext('2d');
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    const imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
+    const code=window.jsQR(imgData.data,imgData.width,imgData.height);
+    if(code && code.data){
+      applyScanCode(code.data.trim());
+      toast('Đã quét: '+code.data.trim());
+      stopScan();
+      return;
+    }
+  }
+  S.scanRAF=requestAnimationFrame(scanLoop);
+}
+function stopScan(){
+  if(S.scanRAF) cancelAnimationFrame(S.scanRAF);
+  if(S.scanStream){ S.scanStream.getTracks().forEach(t=>t.stop()); S.scanStream=null; }
+  const wrap=document.getElementById('cameraWrap'); if(wrap) wrap.classList.remove('on');
+  const btn=document.getElementById('camBtn'); if(btn) btn.textContent='📷 Bật camera quét';
+}
+
+/* ================= HISTORY ================= */
+function renderHistory(c){
+  c.innerHTML = `
+  <div class="panel">
+    <div class="filter-bar">
+      <input id="hSearch" placeholder="Tìm theo mã/tên vật tư…"/>
+      <select id="hUser"><option value="">Tất cả người dùng</option>${S.meta.users.map(u=>`<option value="${u.id}">${u.name}</option>`).join('')}</select>
+      <select id="hWh"><option value="">Tất cả kho</option>${S.meta.warehouses.map(w=>`<option value="${w.id}">${w.name}</option>`).join('')}</select>
+      <select id="hType"><option value="">Nhập &amp; Xuất</option><option value="nhap">Chỉ nhập</option><option value="xuat">Chỉ xuất</option></select>
+    </div>
+    <div id="hList"></div>
+  </div>`;
+  const draw=()=>{
+    const q=document.getElementById('hSearch').value.trim().toLowerCase();
+    const u=document.getElementById('hUser').value, w=document.getElementById('hWh').value, ty=document.getElementById('hType').value;
+    let list=S.tx.filter(t=>{
+      const item=S.items.find(i=>i.id===t.itemId);
+      if(q && item && !(item.code.toLowerCase().includes(q)||item.name.toLowerCase().includes(q))) return false;
+      if(u && t.userId!==u) return false;
+      if(w && t.whId!==w) return false;
+      if(ty && t.type!==ty) return false;
+      return true;
+    });
+    const rows = list.map(t=>{
+      const item=S.items.find(i=>i.id===t.itemId);
+      const typeBadge = t.type==='xuat' ? `<span class="badge badge-red">Xuất</span>` : `<span class="badge badge-green">Nhập</span>`;
+      return `<div class="hist-row">
+        <span class="t-time" data-lbl="Thời gian">${fmtTime(t.ts)}</span>
+        <span data-lbl="Người">${userName(t.userId,t.rawUser)}</span>
+        <span data-lbl="Loại">${typeBadge}</span>
+        <span class="t-item" data-lbl="Vật tư">${item?item.code+' — '+item.name:'(đã xoá)'}</span>
+        <span data-lbl="SL"><b>${t.qty}</b></span>
+        <span data-lbl="Kho/Line">${whName(t.whId)}${t.lineId?' → '+lineName(t.lineId):''}</span>
+      </div>`;
+    }).join('');
+    document.getElementById('hList').innerHTML = list.length ?
+      `<div class="hist-row head"><span>Thời gian</span><span>Người</span><span>Loại</span><span>Vật tư</span><span>SL</span><span>Kho/Line</span></div>${rows}`
+      : `<div class="empty"><div class="big">Chưa có giao dịch</div>Lịch sử cập nhật sẽ hiện tại đây.</div>`;
+  };
+  ['hSearch','hUser','hWh','hType'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',draw);
+    document.getElementById(id).addEventListener('change',draw);
+  });
+  draw();
+}
+
+/* ================= MANAGE ================= */
+function renderManage(c){
+  c.innerHTML = `
+    <div class="panel">
+      <h2 class="section-title">Người dùng <span class="count">${S.meta.users.length}</span></h2>
+      <ul class="mlist" id="userList"></ul>
+      <div class="add-row"><input id="newUserName" placeholder="Tên thành viên mới…"/><button class="btn btn-amber" id="addUserBtn">+ Thêm</button></div>
+      <div class="hint">Không phân quyền — chỉ dùng để ghi nhận ai đã cập nhật. Thêm bao nhiêu thành viên cũng được.</div>
+    </div>
+    <div class="panel">
+      <h2 class="section-title">Kho <span class="count">${S.meta.warehouses.length}</span></h2>
+      <ul class="mlist" id="whList"></ul>
+    </div>
+    <div class="panel">
+      <h2 class="section-title">Dây chuyền <span class="count">${S.meta.lines.length}</span></h2>
+      <ul class="mlist" id="lineList"></ul>
+    </div>
+    <div class="panel">
+      <h2 class="section-title">Vật tư <span class="count">${S.items.length}</span></h2>
+      <ul class="mlist" id="itemList"></ul>
+      <div class="hint">Sửa mức tồn tối thiểu hoặc xoá vật tư không còn dùng. Thêm vật tư mới ở tab Cập nhật khi quét mã chưa có.</div>
+    </div>
+  `;
+  drawUserList(); drawWhList(); drawLineList(); drawItemList();
+
+  document.getElementById('addUserBtn').addEventListener('click',async ()=>{
+    const inp=document.getElementById('newUserName'); const name=inp.value.trim();
+    if(!name){toast('Nhập tên thành viên'); return;}
+    S.meta.users.push({id:uid('u'),name});
+    await safeSet('sp_meta',S.meta); inp.value=''; renderManage(c); toast('Đã thêm '+name);
+  });
+}
+function drawUserList(){
+  document.getElementById('userList').innerHTML = S.meta.users.map(u=>`
+    <li><input data-id="${u.id}" data-kind="user" value="${u.name}"/>
+    <button class="btn btn-sm btn-danger" data-del="user" data-id="${u.id}">Xoá</button></li>`).join('');
+  bindMlist('userList');
+}
+function drawWhList(){
+  document.getElementById('whList').innerHTML = S.meta.warehouses.map(w=>`
+    <li><span style="min-width:70px;"><span class="badge ${w.type==='main'?'badge-steel':'badge-amber'}">${w.type==='main'?'Chính':'Phụ'}</span></span>
+    <input data-id="${w.id}" data-kind="wh" value="${w.name}"/></li>`).join('');
+  bindMlist('whList');
+}
+function drawLineList(){
+  document.getElementById('lineList').innerHTML = S.meta.lines.map(l=>`
+    <li><input data-id="${l.id}" data-kind="line" value="${l.name}"/>
+    <span class="muted" style="font-size:11.5px;">${subWhForLine(l.id)?subWhForLine(l.id).name:''}</span></li>`).join('');
+  bindMlist('lineList');
+}
+function drawItemList(){
+  document.getElementById('itemList').innerHTML = S.items.map(i=>`
+    <li>
+      <span class="t-item" style="font-family:var(--mono);font-size:12px;min-width:90px;">${i.code}</span>
+      <input data-id="${i.id}" data-kind="itemname" value="${i.name}" style="flex:1;"/>
+      <input data-id="${i.id}" data-kind="itemmin" type="number" value="${i.min}" style="max-width:70px;" title="Tồn tối thiểu"/>
+      <button class="btn btn-sm btn-danger" data-del="item" data-id="${i.id}">Xoá</button>
+    </li>`).join('');
+  bindMlist('itemList');
+}
+function bindMlist(containerId){
+  const el=document.getElementById(containerId);
+  el.querySelectorAll('input[data-kind]').forEach(inp=>{
+    inp.addEventListener('change',async ()=>{
+      const {id,kind}=inp.dataset;
+      if(kind==='user'){ const u=S.meta.users.find(x=>x.id===id); u.name=inp.value.trim()||u.name; await safeSet('sp_meta',S.meta); }
+      if(kind==='wh'){ const w=S.meta.warehouses.find(x=>x.id===id); w.name=inp.value.trim()||w.name; await safeSet('sp_meta',S.meta); }
+      if(kind==='line'){ const l=S.meta.lines.find(x=>x.id===id); l.name=inp.value.trim()||l.name; await safeSet('sp_meta',S.meta); }
+      if(kind==='itemname'){ const it=S.items.find(x=>x.id===id); it.name=inp.value.trim()||it.name; await safeSet('sp_items',S.items); }
+      if(kind==='itemmin'){ const it=S.items.find(x=>x.id===id); it.min=parseInt(inp.value)||0; await safeSet('sp_items',S.items); }
+      toast('Đã lưu thay đổi');
+    });
+  });
+  el.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click',async ()=>{
+      const {del,id}=btn.dataset;
+      if(!confirm('Xoá mục này?')) return;
+      if(del==='user'){ if(S.meta.users.length<=1){toast('Cần giữ ít nhất 1 người dùng'); return;} S.meta.users=S.meta.users.filter(x=>x.id!==id); await safeSet('sp_meta',S.meta); }
+      if(del==='item'){ S.items=S.items.filter(x=>x.id!==id); await safeSet('sp_items',S.items); }
+      renderManage(document.getElementById('tabContent'));
+      toast('Đã xoá');
+    });
+  });
+}
+
+/* ================= INIT ================= */
+(async function init(){
+  await loadAll();
+  render();
+})();
+</script>
+</body>
+</html>
