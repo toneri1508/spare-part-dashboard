@@ -51,11 +51,31 @@ body{
   background:repeating-linear-gradient(135deg, rgba(242,183,5,0.08) 0 10px, transparent 10px 20px);
 }
 .hdr-inner{position:relative;z-index:1;display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:space-between;width:100%;}
+.hdr-left{display:flex;align-items:center;gap:12px;}
+.hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+.gear-btn{
+  flex:none;width:36px;height:36px;border-radius:9px;font-size:17px;line-height:1;
+  border:1px solid rgba(255,255,255,0.22);background:rgba(255,255,255,0.07);color:#fff;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s;
+}
+.gear-btn:hover{background:rgba(255,255,255,0.16);}
+.gear-btn.active{background:var(--amber);color:#2A2200;border-color:var(--amber-deep);}
+.hdr-user{font-size:11.5px;color:#D8DCDE;display:flex;align-items:center;gap:8px;font-family:var(--mono);}
+.hdr-user b{color:#fff;font-family:var(--body);font-weight:600;}
+.link-btn{background:none;border:none;color:var(--amber);font-size:11px;cursor:pointer;padding:0;text-decoration:underline;font-family:var(--body);}
 .hdr h1{
   font-family:var(--display);font-weight:600;font-size:20px;letter-spacing:0.3px;margin:0;
   text-transform:uppercase;
 }
 .hdr .sub{font-size:12.5px;color:#C7CDD1;margin-top:3px;font-family:var(--mono);}
+.login-wrap{min-height:72vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-box{max-width:360px;width:100%;}
+.login-title{font-family:var(--display);font-size:18px;text-transform:uppercase;letter-spacing:0.3px;margin:0 0 4px;text-align:center;}
+.login-sub{text-align:center;color:var(--muted);font-size:12.5px;margin-bottom:16px;}
+.readonly-field{
+  border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:13.5px;
+  background:var(--bg);color:var(--ink);font-weight:600;
+}
 .hdr-tag{
   font-family:var(--mono);font-size:11px;background:var(--amber);color:#2A2200;
   padding:4px 9px;border-radius:5px;font-weight:700;letter-spacing:0.5px;
@@ -149,32 +169,32 @@ label.field-label{display:block;font-size:11.5px;font-weight:700;text-transform:
 .line-card li:first-child{border-top:none;}
 
 /* ---------- bin tag card (signature element) ---------- */
-.tag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;}
+.tag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:10px;}
 .tag{
-  position:relative;background:var(--panel);border:1px solid var(--border);border-radius:10px;
-  padding:14px 14px 12px 18px;box-shadow:var(--shadow);overflow:hidden;
+  position:relative;background:var(--panel);border:1px solid var(--border);border-radius:9px;
+  padding:10px 10px 9px 14px;box-shadow:var(--shadow);overflow:hidden;
 }
 .tag::before{ /* status stripe */
-  content:"";position:absolute;left:0;top:0;bottom:0;width:6px;
+  content:"";position:absolute;left:0;top:0;bottom:0;width:5px;
 }
 .tag.st-green::before{background:var(--green);}
 .tag.st-amber::before{background:var(--status-amber);}
 .tag.st-red::before{background:var(--red);}
 .tag .punch{
-  position:absolute;top:10px;right:10px;width:14px;height:14px;border-radius:50%;
+  position:absolute;top:8px;right:8px;width:11px;height:11px;border-radius:50%;
   background:var(--bg);border:1px solid var(--border-strong);
 }
-.tag .code{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--steel-deep);letter-spacing:0.3px;}
-.tag .name{font-family:var(--display);font-size:14.5px;font-weight:500;margin:3px 0 8px;padding-right:18px;}
-.tag .tear{border-top:1px dashed var(--border-strong);margin:8px 0;}
+.tag .code{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--steel-deep);letter-spacing:0.3px;}
+.tag .name{font-family:var(--display);font-size:13px;font-weight:500;margin:2px 0 4px;padding-right:15px;line-height:1.25;}
+.tag .tear{border-top:1px dashed var(--border-strong);margin:5px 0;}
 .tag .qty-row{display:flex;align-items:baseline;justify-content:space-between;}
-.tag .qty{font-family:var(--display);font-size:22px;font-weight:600;}
-.tag .qty-unit{font-size:11px;color:var(--muted);}
-.tag .wh-list{margin-top:8px;font-size:11.5px;color:var(--muted);}
-.tag .wh-list div{display:flex;justify-content:space-between;padding:2px 0;}
+.tag .qty{font-family:var(--display);font-size:18px;font-weight:600;}
+.tag .qty-unit{font-size:10px;color:var(--muted);}
+.tag .wh-list{margin-top:5px;font-size:10.5px;color:var(--muted);}
+.tag .wh-list div{display:flex;justify-content:space-between;padding:1px 0;}
 .tag .wh-list b{color:var(--ink);font-family:var(--mono);}
-.tag .tag-actions{display:flex;gap:6px;margin-top:10px;}
-.tag .grp{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:0.4px;margin-top:2px;}
+.tag .grp{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:0.3px;margin-top:1px;}
+.tag .last-act{margin-top:6px;padding-top:6px;}
 
 /* ---------- update / scan ---------- */
 .scan-box{
@@ -339,8 +359,25 @@ const S = {
   meta:null, items:[], tx:[], activeTab:'overview',
   lastUsed:{whId:null, userId:null},
   scanStream:null, scanRAF:null,
-  ready:false
+  ready:false,
+  currentUser:null
 };
+
+const ADMIN_ID = '26508846';
+
+/* ================= AUTH (lưu trên thiết bị, không cần mật khẩu) ================= */
+function getSavedUser(){
+  try{ const raw=localStorage.getItem('sp_currentUser'); return raw?JSON.parse(raw):null; }
+  catch(e){ return null; }
+}
+function saveCurrentUser(u){
+  try{ localStorage.setItem('sp_currentUser', JSON.stringify(u)); }catch(e){}
+}
+function logout(){
+  try{ localStorage.removeItem('sp_currentUser'); }catch(e){}
+  S.currentUser = null;
+  boot();
+}
 
 function uid(p){return p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 
@@ -431,31 +468,47 @@ function subWhForLine(lineId){return S.meta.warehouses.find(w=>w.type==='sub'&&w
 
 /* ================= RENDER ROOT ================= */
 function render(){
+  if(!S.currentUser){ renderLogin(); return; }
   const app=document.getElementById('app');
+  const isAdmin = S.currentUser.role==='admin';
   app.innerHTML = `
     <div class="hdr"><div class="hdr-inner">
-      <div>
-        <h1>Kiểm soát Spare Part · 4 Dây chuyền TV</h1>
-        <div class="sub">3 kho chính · 4 kho phụ · ${S.meta.users.length} người dùng</div>
+      <div class="hdr-left">
+        ${isAdmin?`<button class="gear-btn ${S.activeTab==='manage'?'active':''}" id="gearBtn" title="Quản lý hệ thống">⚙</button>`:''}
+        <div>
+          <h1>Kiểm soát Spare Part · 4 Dây chuyền TV</h1>
+          <div class="sub">3 kho chính · 4 kho phụ · ${S.meta.users.length} người dùng</div>
+        </div>
       </div>
-      <div class="hdr-tag">DỮ LIỆU DÙNG CHUNG</div>
+      <div class="hdr-right">
+        <div class="hdr-user"><b>${escapeHtml(S.currentUser.name)}</b>${isAdmin?' · Quản trị':''}<button class="link-btn" id="logoutBtn">Đổi tài khoản</button></div>
+        <div class="hdr-tag">DỮ LIỆU DÙNG CHUNG</div>
+      </div>
     </div></div>
     <div class="tabs" id="tabs"></div>
     <div id="tabContent"></div>
   `;
-  const tabs=[['overview','Tổng quan'],['inventory','Vật tư'],['update','Cập nhật'],['history','Lịch sử'],['manage','Quản lý']];
+  const tabs=[['overview','Tổng quan'],['inventory','Vật tư'],['update','Cập nhật'],['history','Lịch sử']];
   document.getElementById('tabs').innerHTML = tabs.map(([id,label])=>
     `<button class="tab-btn ${S.activeTab===id?'active':''}" data-tab="${id}">${label}</button>`
   ).join('');
   document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>{
     stopScan(); S.activeTab=b.dataset.tab; render();
   }));
+  if(isAdmin){
+    document.getElementById('gearBtn').addEventListener('click',()=>{
+      stopScan(); S.activeTab='manage'; render();
+    });
+  }
+  document.getElementById('logoutBtn').addEventListener('click',()=>{
+    if(confirm('Đăng xuất khỏi thiết bị này?')) logout();
+  });
   const c=document.getElementById('tabContent');
   if(S.activeTab==='overview') renderOverview(c);
   else if(S.activeTab==='inventory') renderInventory(c);
   else if(S.activeTab==='update') renderUpdate(c);
   else if(S.activeTab==='history') renderHistory(c);
-  else if(S.activeTab==='manage') renderManage(c);
+  else if(S.activeTab==='manage'){ if(isAdmin) renderManage(c); else { S.activeTab='overview'; renderOverview(c); } }
 }
 
 /* ================= OVERVIEW ================= */
@@ -479,21 +532,6 @@ function renderOverview(c){
     <div class="stat-card ${lowItems.length?'warn':''}"><div class="num">${lowItems.length}</div><div class="lbl">Cảnh báo tồn thấp</div></div>
     <div class="stat-card"><div class="num">${txToday}</div><div class="lbl">Giao dịch hôm nay</div></div>
   </div>`;
-
-  html += `<div class="panel"><h2 class="section-title">Theo dây chuyền sản xuất <span class="count">4</span></h2>
-    <div class="line-grid">`;
-  S.meta.lines.forEach(line=>{
-    const sw = subWhForLine(line.id);
-    const linked = items.filter(i=> sw && (i.stocks[sw.id]!==undefined));
-    const lowInLine = linked.filter(i=>statusOf(i)!=='green');
-    html += `<div class="line-card">
-      <div class="lname">${line.name}</div>
-      <div class="lwh">${sw?sw.name:'chưa gắn kho phụ'}</div>
-      <div class="lalert">${lowInLine.length? `<span class="badge badge-amber">${lowInLine.length} SKU cần chú ý</span>` : `<span class="badge badge-green">Ổn định</span>`}</div>
-      <ul>${lowInLine.slice(0,3).map(i=>`<li><span>${i.name}</span><b>${sw?(i.stocks[sw.id]||0):0}/${i.min}</b></li>`).join('')||'<li style="border:none;color:var(--faint);">—</li>'}</ul>
-    </div>`;
-  });
-  html += `</div></div>`;
 
   html += `<div class="panel"><h2 class="section-title">Cảnh báo tồn thấp toàn hệ thống <span class="count">${lowItems.length}</span></h2>`;
   if(!lowItems.length){
@@ -521,10 +559,6 @@ function tagCardHTML(item){
     <span class="badge ${badge}" style="margin-top:6px;">${statusLabel(st)}</span>
     <div class="wh-list">${whRows}</div>
     ${lastActRowHTML(item)}
-    <div class="tag-actions">
-      <button class="btn btn-sm" data-action="qr" data-id="${item.id}">Xem tem QR</button>
-      <button class="btn btn-sm" data-action="quickupdate" data-id="${item.id}">Cập nhật</button>
-    </div>
   </div>`;
 }
 function lastActRowHTML(item){
@@ -648,7 +682,7 @@ function renderUpdate(c){
 
 function renderUpdateQuick(c){
   updState.whId = updState.whId || S.lastUsed.whId || S.meta.warehouses[0].id;
-  updState.userId = updState.userId || S.lastUsed.userId || S.meta.users[0].id;
+  updState.userId = S.currentUser.id;
   updState.lineId = updState.lineId || S.meta.lines[0].id;
 
   c.innerHTML = `
@@ -686,7 +720,7 @@ function renderUpdateQuick(c){
     <div class="row2">
       <div class="field">
         <label class="field-label">Người thực hiện</label>
-        <select id="userSel">${S.meta.users.map(u=>`<option value="${u.id}" ${u.id===updState.userId?'selected':''}>${u.name}</option>`).join('')}</select>
+        <div class="readonly-field">${escapeHtml(S.currentUser.name)}</div>
       </div>
       <div class="field">
         <label class="field-label">Số lượng</label>
@@ -710,7 +744,6 @@ function renderUpdateQuick(c){
   });
   document.getElementById('whSel').addEventListener('change',e=>updState.whId=e.target.value);
   const lineSel=document.getElementById('lineSel'); if(lineSel) lineSel.addEventListener('change',e=>updState.lineId=e.target.value);
-  document.getElementById('userSel').addEventListener('change',e=>updState.userId=e.target.value);
   document.getElementById('qtyInput').addEventListener('input',e=>updState.qty=Math.max(1,parseInt(e.target.value)||1));
   document.getElementById('qtyMinus').addEventListener('click',()=>{updState.qty=Math.max(1,updState.qty-1);document.getElementById('qtyInput').value=updState.qty;});
   document.getElementById('qtyPlus').addEventListener('click',()=>{updState.qty=updState.qty+1;document.getElementById('qtyInput').value=updState.qty;});
@@ -1048,8 +1081,12 @@ function renderManage(c){
     <div class="panel">
       <h2 class="section-title">Người dùng <span class="count">${S.meta.users.length}</span></h2>
       <ul class="mlist" id="userList"></ul>
-      <div class="add-row"><input id="newUserName" placeholder="Tên thành viên mới…"/><button class="btn btn-amber" id="addUserBtn">+ Thêm</button></div>
-      <div class="hint">Không phân quyền — chỉ dùng để ghi nhận ai đã cập nhật. Thêm bao nhiêu thành viên cũng được.</div>
+      <div class="add-row">
+        <input id="newUserId" placeholder="ID nhân viên…" style="max-width:130px;"/>
+        <input id="newUserName" placeholder="Tên thành viên mới…"/>
+        <button class="btn btn-amber" id="addUserBtn">+ Thêm</button>
+      </div>
+      <div class="hint">Mỗi thành viên đăng nhập bằng ID riêng (không cần mật khẩu) — ID này dùng để ghi nhận ai đã cập nhật kho.</div>
     </div>
     <div class="panel">
       <h2 class="section-title">Kho <span class="count">${S.meta.warehouses.length}</span></h2>
@@ -1068,16 +1105,22 @@ function renderManage(c){
   drawUserList(); drawWhList(); drawLineList(); drawItemList();
 
   document.getElementById('addUserBtn').addEventListener('click',async ()=>{
-    const inp=document.getElementById('newUserName'); const name=inp.value.trim();
-    if(!name){toast('Nhập tên thành viên'); return;}
-    S.meta.users.push({id:uid('u'),name});
-    await safeSet('sp_meta',S.meta); inp.value=''; renderManage(c); toast('Đã thêm '+name);
+    const idInp=document.getElementById('newUserId'); const nameInp=document.getElementById('newUserName');
+    const id=idInp.value.trim(); const name=nameInp.value.trim();
+    if(!id||!name){toast('Nhập đủ ID và tên thành viên'); return;}
+    if(S.meta.users.some(u=>u.id===id)){toast('ID này đã tồn tại'); return;}
+    S.meta.users.push({id,name,role:'user'});
+    await safeSet('sp_meta',S.meta); idInp.value=''; nameInp.value=''; renderManage(c); toast('Đã thêm '+name);
   });
 }
 function drawUserList(){
   document.getElementById('userList').innerHTML = S.meta.users.map(u=>`
-    <li><input data-id="${u.id}" data-kind="user" value="${u.name}"/>
-    <button class="btn btn-sm btn-danger" data-del="user" data-id="${u.id}">Xoá</button></li>`).join('');
+    <li>
+      <span class="muted" style="font-family:var(--mono);font-size:11px;min-width:82px;">${escapeHtml(u.id)}</span>
+      <input data-id="${u.id}" data-kind="user" value="${u.name}"/>
+      ${u.role==='admin'?'<span class="badge badge-steel" style="flex:none;">Quản trị</span>':''}
+      <button class="btn btn-sm btn-danger" data-del="user" data-id="${u.id}">Xoá</button>
+    </li>`).join('');
   bindMlist('userList');
 }
 function drawWhList(){
@@ -1119,7 +1162,11 @@ function bindMlist(containerId){
     btn.addEventListener('click',async ()=>{
       const {del,id}=btn.dataset;
       if(!confirm('Xoá mục này?')) return;
-      if(del==='user'){ if(S.meta.users.length<=1){toast('Cần giữ ít nhất 1 người dùng'); return;} S.meta.users=S.meta.users.filter(x=>x.id!==id); await safeSet('sp_meta',S.meta); }
+      if(del==='user'){
+        if(S.meta.users.length<=1){toast('Cần giữ ít nhất 1 người dùng'); return;}
+        if(S.currentUser && id===S.currentUser.id){toast('Không thể tự xoá tài khoản đang đăng nhập'); return;}
+        S.meta.users=S.meta.users.filter(x=>x.id!==id); await safeSet('sp_meta',S.meta);
+      }
       if(del==='item'){ S.items=S.items.filter(x=>x.id!==id); await safeSet('sp_items',S.items); }
       renderManage(document.getElementById('tabContent'));
       toast('Đã xoá');
@@ -1127,10 +1174,69 @@ function bindMlist(containerId){
   });
 }
 
+/* ================= LOGIN SCREEN ================= */
+function renderLogin(){
+  const app=document.getElementById('app');
+  app.innerHTML = `
+    <div class="login-wrap">
+      <div class="panel login-box">
+        <div class="login-title">Kiểm soát Spare Part</div>
+        <div class="login-sub">Nhập ID nhân viên để tiếp tục — ID sẽ được ghi nhớ trên thiết bị này, không cần nhập lại.</div>
+        <div class="field"><label class="field-label">ID nhân viên</label><input id="loginId" placeholder="VD: 26508846" autocomplete="off"/></div>
+        <div class="field" id="loginNameField" style="display:none;"><label class="field-label">Tên hiển thị (thiết lập lần đầu)</label><input id="loginName" placeholder="VD: Nguyễn Văn A"/></div>
+        <button class="btn btn-primary btn-block" id="loginBtn" style="padding:11px;">Vào</button>
+        <div class="hint" id="loginMsg" style="margin-top:8px;text-align:center;"></div>
+      </div>
+    </div>`;
+  const idInp=document.getElementById('loginId');
+  const nameField=document.getElementById('loginNameField');
+  const nameInp=document.getElementById('loginName');
+  const msg=document.getElementById('loginMsg');
+  let pendingAdminSetup=false;
+
+  async function doLogin(){
+    const id=idInp.value.trim();
+    if(!id){ msg.textContent='Vui lòng nhập ID.'; return; }
+    let user = S.meta.users.find(u=>u.id===id);
+
+    if(!user && id===ADMIN_ID){
+      if(!pendingAdminSetup){
+        pendingAdminSetup=true;
+        nameField.style.display='';
+        msg.textContent='Đây là ID quản trị viên — nhập tên của bạn để hoàn tất thiết lập lần đầu.';
+        nameInp.focus();
+        return;
+      }
+      const name=nameInp.value.trim();
+      if(!name){ msg.textContent='Vui lòng nhập tên.'; return; }
+      user={id:ADMIN_ID,name,role:'admin'};
+      S.meta.users.push(user);
+      await safeSet('sp_meta',S.meta);
+    }
+
+    if(!user){
+      msg.textContent='ID chưa được cấp quyền. Liên hệ quản trị viên để được thêm vào hệ thống.';
+      return;
+    }
+    S.currentUser={id:user.id,name:user.name,role:user.role||'user'};
+    saveCurrentUser(S.currentUser);
+    S.activeTab='overview';
+    render();
+  }
+
+  document.getElementById('loginBtn').addEventListener('click',doLogin);
+  [idInp,nameInp].forEach(el=>el.addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); }));
+}
+
 /* ================= INIT ================= */
+function boot(){
+  if(!S.currentUser){ renderLogin(); }
+  else { render(); }
+}
 (async function init(){
   await loadAll();
-  render();
+  S.currentUser = getSavedUser();
+  boot();
 })();
 </script>
 </body>
